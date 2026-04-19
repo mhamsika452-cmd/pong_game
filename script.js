@@ -1,96 +1,98 @@
-// Pong Game Logic
+// Pong Game Script
 
-// Canvas Setup
-const canvas = document.getElementById('pong');
-const context = canvas.getContext('2d');
+// Set up the canvas
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
 
-// Game Objects
-const ball = { x: canvas.width / 2, y: canvas.height / 2, radius: 10, speed: 4, velocityX: 4, velocityY: 4 };
-const paddleWidth = 10, paddleHeight = 100;
-const playerPaddle = { x: 0, y: (canvas.height - paddleHeight) / 2, width: paddleWidth, height: paddleHeight, color: 'red' };
-const aiPaddle = { x: canvas.width - paddleWidth, y: (canvas.height - paddleHeight) / 2, width: paddleWidth, height: paddleHeight, color: 'blue' };
+// Game variables
+let paddleWidth = 10;
+let paddleHeight = 100;
+let ballRadius = 10;
+let paddle1Y = (canvas.height - paddleHeight) / 2;
+let paddle2Y = (canvas.height - paddleHeight) / 2;
+let ballX = canvas.width / 2;
+let ballY = canvas.height / 2;
+let ballSpeedX = 5;
+let ballSpeedY = 5;
+let player1Score = 0;
+let player2Score = 0;
 
-// Event Listeners
-document.addEventListener('mousemove', (event) => {
-    const rect = canvas.getBoundingClientRect();
-    playerPaddle.y = event.clientY - rect.top - playerPaddle.height / 2;
-});
+// AI parameters
+const aiSpeed = 4;
 
-// Collision Detection Function
-function detectCollision(ball, paddle) {
-    return ball.x < paddle.x + paddle.width &&
-           ball.x + ball.radius > paddle.x &&
-           ball.y < paddle.y + paddle.height &&
-           ball.y + ball.radius > paddle.y;
+// Draw the game elements
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // Draw paddles
+    ctx.fillStyle = 'blue';
+    ctx.fillRect(0, paddle1Y, paddleWidth, paddleHeight);
+    ctx.fillStyle = 'red';
+    ctx.fillRect(canvas.width - paddleWidth, paddle2Y, paddleWidth, paddleHeight);
+    // Draw ball
+    ctx.beginPath();
+    ctx.arc(ballX, ballY, ballRadius, 0, Math.PI * 2);
+    ctx.fillStyle = 'green';
+    ctx.fill();
+    ctx.closePath();
+    // Draw scores
+    ctx.font = '20px Arial';
+    ctx.fillText('Player 1: ' + player1Score, 20, 20);
+    ctx.fillText('Player 2: ' + player2Score, canvas.width - 120, 20);
 }
 
-// AI Logic
-function aiMove() {
-    const centerOfPaddle = aiPaddle.y + aiPaddle.height / 2;
-    if (ball.y < centerOfPaddle) {
-        aiPaddle.y -= 4;
-    } else {
-        aiPaddle.y += 4;
+// Update game logic
+function update() {
+    ballX += ballSpeedX;
+    ballY += ballSpeedY;
+    // Ball collision with top and bottom
+    if (ballY + ballRadius > canvas.height || ballY - ballRadius < 0) {
+        ballSpeedY = -ballSpeedY;
+    }
+    // Ball collision with paddles
+    if (ballX - ballRadius < paddleWidth && ballY > paddle1Y && ballY < paddle1Y + paddleHeight) {
+        ballSpeedX = -ballSpeedX;
+    }
+    if (ballX + ballRadius > canvas.width - paddleWidth && ballY > paddle2Y && ballY < paddle2Y + paddleHeight) {
+        ballSpeedX = -ballSpeedX;
+    }
+    // Score Update
+    if (ballX + ballRadius > canvas.width) {
+        player1Score++;
+        resetBall();
+    } else if (ballX - ballRadius < 0) {
+        player2Score++;
+        resetBall();
+    }
+    // AI movement
+    if (ballY > paddle2Y + paddleHeight / 2 && paddle2Y + paddleHeight < canvas.height) {
+        paddle2Y += aiSpeed;
+    } else if (ballY < paddle2Y + paddleHeight / 2 && paddle2Y > 0) {
+        paddle2Y -= aiSpeed;
     }
 }
 
-// Game Loop
+// Reset ball to center
+function resetBall() {
+    ballX = canvas.width / 2;
+    ballY = canvas.height / 2;
+    ballSpeedX = -ballSpeedX;
+}
+
+// Handle keyboard controls
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'ArrowUp' && paddle1Y > 0) {
+        paddle1Y -= 20;
+    } else if (event.key === 'ArrowDown' && paddle1Y + paddleHeight < canvas.height) {
+        paddle1Y += 20;
+    }
+});
+
+// Game loop
 function gameLoop() {
-    update();
     draw();
+    update();
     requestAnimationFrame(gameLoop);
 }
 
-function update() {
-    // Ball Movement
-    ball.x += ball.velocityX;
-    ball.y += ball.velocityY;
-
-    // Wall Collision
-    if (ball.y + ball.radius >= canvas.height || ball.y - ball.radius <= 0) {
-        ball.velocityY = -ball.velocityY;
-    }
-
-    // Paddle Collision
-    if (detectCollision(ball, playerPaddle) || detectCollision(ball, aiPaddle)) {
-        ball.velocityX = -ball.velocityX;
-    }
-
-    // Score Update
-    if (ball.x + ball.radius >= canvas.width) {
-        // Player scored
-        resetGame();
-    } else if (ball.x - ball.radius <= 0) {
-        // AI scored
-        resetGame();
-    }
-    aiMove();
-}
-
-// Draw Function
-function draw() {
-    // Clear Canvas
-    context.clearRect(0, 0, canvas.width, canvas.height);
-    // Draw Ball
-    context.fillStyle = 'white';
-    context.beginPath();
-    context.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2, false);
-    context.fill();
-    // Draw Paddles
-    context.fillStyle = playerPaddle.color;
-    context.fillRect(playerPaddle.x, playerPaddle.y, playerPaddle.width, playerPaddle.height);
-    context.fillStyle = aiPaddle.color;
-    context.fillRect(aiPaddle.x, aiPaddle.y, aiPaddle.width, aiPaddle.height);
-}
-
-// Reset Game Functionality
-function resetGame() {
-    ball.x = canvas.width / 2;
-    ball.y = canvas.height / 2;
-    ball.velocityX = 4 * (Math.random() > 0.5 ? 1 : -1);
-    ball.velocityY = 4 * (Math.random() > 0.5 ? 1 : -1);
-}
-
-// Initialize Game
-resetGame();
+// Start the game
 gameLoop();
