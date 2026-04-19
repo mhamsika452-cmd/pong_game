@@ -1,0 +1,11 @@
+body { margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); font-family: Arial, sans-serif; }
+
+.game-container { text-align: center; background: rgba(0, 0, 0, 0.8); padding: 20px; border-radius: 10px; box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37); }
+
+#gameCanvas { display: block; background-color: #1a1a1a; border: 3px solid #00ff00; border-radius: 5px; margin-bottom: 20px; cursor: none; }
+
+.scoreboard { font-size: 48px; color: #00ff00; font-weight: bold; margin-bottom: 20px; text-shadow: 0 0 10px #00ff00; letter-spacing: 5px; }
+
+.instructions { color: #cccccc; font-size: 14px; line-height: 1.8; }
+
+.instructions p { margin: 5px 0; }
